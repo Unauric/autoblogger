@@ -75,7 +75,7 @@ for index, row in enumerate(tqdm(rows, desc='Generating blog posts')):
 ##    featured_image = generate_featured_image(meta_title)
 
     # Save the information into a new row in the output dataframe
-    output_df = output_df._append({'URL Slug': url_slug, 'Meta Title': meta_title, 'Description': description, 'Blog Content': blog_content, 'Featured Image': featured_image}, ignore_index=True)
+    output_df = output_df._append({'URL Slug': url_slug, 'Meta Title': meta_title, 'Description': description, 'Blog Content': blog_content, ignore_index=True)
     
     # After each blog post is written, it's immediately saved to 'output.csv'
     output_df.to_csv('output.csv', index=False)
