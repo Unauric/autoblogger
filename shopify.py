@@ -63,7 +63,7 @@ def create_shopify_post(payload):
 
 @retry(wait=wait_random_exponential(multiplier=1, min=4, max=10))
 def generate_blog_post(row):
-    try:
+    
         url_slug = row['URL Slug']
         meta_title = row['Meta Title']
         description = row['Description of Page']
