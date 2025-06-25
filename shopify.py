@@ -126,9 +126,9 @@ def generate_blog_post(row):
         print(f"Creating Shopify post for URL Slug {url_slug}")
         create_shopify_post(payload)
 
-    except Exception as e:
-        print(f"Error generating blog post for URL Slug {url_slug}: {e}")
-        return None
+  #  except Exception as e:
+  #      print(f"Error generating blog post for URL Slug {url_slug}: {e}")
+  #      return None
 
 def main():
     df = pd.read_csv('input.csv')
