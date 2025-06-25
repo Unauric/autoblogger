@@ -35,10 +35,10 @@ output_df = pd.DataFrame(columns=['URL Slug', 'Meta Title', 'Description', 'Blog
 output_lock = threading.Lock()
 
 # Shopify API credentials
-api_key = 'YOUR_API_KEY'
-password = 'YOUR_SHOPIFY_PASSWORD'
-store_address = 'https://YOUR_STORE_ID.myshopify.com/admin'
-blog_id = 'YOUR_BLOG_ID'
+api_key = os.getenv("YOUR_API_KEY")
+password = os.getenv("YOUR_SHOPIFY_PASSWORD")
+store_address = os.getenv("https://YOUR_STORE_ID.myshopify.com/admin")
+blog_id = os.getenv("YOUR_BLOG_ID")
 author = 'YOUR_AUTHOR_NAME'
 
 # Headers for the request
