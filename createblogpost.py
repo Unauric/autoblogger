@@ -6,50 +6,7 @@ import base64
 import time
 from tqdm import tqdm
 
-openai.api_key = "YOUR_OPEN_AI_KEY"  # Add your OpenAI API Key
-
-def generate_featured_image(text):
-    api_key = 'YOUR_STABILITY_API_KEY'
-    api_host = 'https://api.stability.ai'
-    engine_id = 'stable-diffusion-xl-beta-v2-2-2'
-    response = requests.post(
-        f"{api_host}/v1/generation/{engine_id}/text-to-image",
-        headers={
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-            "Authorization": f"Bearer {api_key}"
-        },
-        json={
-            "text_prompts": [
-                {
-                    "text": f'an object only patterned background without representing classic menswear' #replace classic menswear
-                }
-            ],
-            "cfg_scale": 7,
-            "clip_guidance_preset": "FAST_BLUE",
-            "height": 512,
-            "width": 768,
-            "samples": 1,
-            "steps": 30,
-        },
-    )
-
-    if response.status_code != 200:
-        raise Exception("Non-200 response: " + str(response.text))
-
-    data = response.json()
-    image_base64 = data["artifacts"][0]["base64"]
-
-    # Ensure 'out' directory exists
-    if not os.path.exists('./out'):
-        os.makedirs('./out')
-
-    # Save the image locally
-    image_filename = f"./out/{text.replace(' ', '_').replace('/', '_')}.png"
-    with open(image_filename, "wb") as f:
-        f.write(base64.b64decode(image_base64))
-
-    return image_filename
+openai.api_key = os.getenv("YOUR_OPEN_AI_KEY")  # Add your OpenAI API Key
 
 
 df = pd.read_csv('input.csv')  # Assuming input CSV file name is 'input.csv'
@@ -115,7 +72,7 @@ for index, row in enumerate(tqdm(rows, desc='Generating blog posts')):
     blog_content = response['choices'][0]['message']['content']
 
     # Generate featured image
-    featured_image = generate_featured_image(meta_title)
+##    featured_image = generate_featured_image(meta_title)
 
     # Save the information into a new row in the output dataframe
     output_df = output_df._append({'URL Slug': url_slug, 'Meta Title': meta_title, 'Description': description, 'Blog Content': blog_content, 'Featured Image': featured_image}, ignore_index=True)
