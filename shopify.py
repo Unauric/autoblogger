@@ -39,7 +39,7 @@ api_key = os.getenv("YOUR_API_KEY")
 password = os.getenv("YOUR_SHOPIFY_PASSWORD")
 store_address = os.getenv("YOUR_STORE_ID")
 blog_id = os.getenv("YOUR_BLOG_ID")
-author = 'YOUR_AUTHOR_NAME'
+author = "Wine expert"
 
 # Headers for the request
 headers = {
