@@ -29,7 +29,7 @@ def completion_with_backoff(**kwargs):
         print(f"Unexpected error: {e}")
         raise
 
-openai.api_key = 'YOUR_OPEN_AI_KEY'
+openai.api_key = os.getenv("YOUR_OPEN_AI_KEY")
 
 output_df = pd.DataFrame(columns=['URL Slug', 'Meta Title', 'Description', 'Blog Content', 'Featured Image'])
 output_lock = threading.Lock()
