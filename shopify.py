@@ -112,7 +112,8 @@ def generate_blog_post(row):
         response = completion_with_backoff(
             model="gpt-4",
             messages=conversation,
-            max_tokens=4500,
+            max_prompt_tokens = sum(len(m['content']) for m in conversation) // 4,
+            max_tokens = 8192 - max_prompt_tokens - 100,  # Add a buffer
             temperature=0.2
         )
         blog_content = response['choices'][0]['message']['content']
