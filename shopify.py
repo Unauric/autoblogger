@@ -34,6 +34,18 @@ openai.api_key = os.getenv("YOUR_OPEN_AI_KEY")
 output_df = pd.DataFrame(columns=['URL Slug', 'Meta Title', 'Description', 'Blog Content', 'Featured Image'])
 output_lock = threading.Lock()
 
+required_env_vars = {
+    "OpenAI Key": openai.api_key,
+    "Shopify API Key": api_key,
+    "Shopify Password": password,
+    "Shopify Store Address": store_address,
+    "Shopify Blog ID": blog_id
+}
+for name, val in required_env_vars.items():
+    if not val:
+        raise EnvironmentError(f"Missing required environment variable: {name}")
+
+
 # Shopify API credentials
 api_key = os.getenv("YOUR_API_KEY")
 password = os.getenv("YOUR_SHOPIFY_PASSWORD")
