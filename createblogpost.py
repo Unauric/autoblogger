@@ -6,7 +6,7 @@ import base64
 import time
 from tqdm import tqdm
 
-openai.api_key = 'YOUR_OPEN_AI_KEY'  # Add your OpenAI API Key
+openai.api_key = "YOUR_OPEN_AI_KEY"  # Add your OpenAI API Key
 
 def generate_featured_image(text):
     api_key = 'YOUR_STABILITY_API_KEY'
