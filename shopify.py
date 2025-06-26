@@ -117,7 +117,7 @@ def generate_blog_post(row):
 
         if "choices" not in outline_response:
                     print(f"❌ OpenAI response did not contain 'choices': {outline_response}")
-            return
+                    return
 
         essay_outline = outline_response['choices'][0]['message']['content']
 
