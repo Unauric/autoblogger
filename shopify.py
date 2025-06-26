@@ -109,13 +109,18 @@ def generate_blog_post(row):
         ]
         print(f"🔁 Sending prompt to OpenAI for: {url_slug}")
         outline_response = completion_with_backoff(
-            model="gpt-4",
-            messages=outline_prompt,
-            max_tokens=1024,
-            temperature=0.2
-        )
-        print(f"✅ Received outline for: {url_slug}")
+                    model="gpt-4",
+                    messages=outline_prompt,
+                    max_tokens=1024,
+                    temperature=0.2
+         )
+
+        if "choices" not in outline_response:
+                    print(f"❌ OpenAI response did not contain 'choices': {outline_response}")
+            return
+
         essay_outline = outline_response['choices'][0]['message']['content']
+
 
         conversation = [
             {
