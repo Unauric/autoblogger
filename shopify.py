@@ -1,7 +1,7 @@
+import os
 import openai
 import pandas as pd
 import requests
-import os
 import base64
 import time
 from tqdm import tqdm
@@ -9,8 +9,8 @@ import concurrent.futures
 import threading
 import backoff
 import json
+from openai import OpenAI
 from concurrent.futures import ThreadPoolExecutor
-
 from tenacity import (
     retry,
     stop_after_attempt,
@@ -22,10 +22,10 @@ from tenacity import (
 # 🔐 API Keys & Sanity Checks
 # ==============================
 
-openai.api_key = os.getenv("YOUR_OPEN_AI_KEY")
-if not openai.api_key:
+client = OpenAI(api_key=os.getenv("YOUR_OPEN_AI_KEY"))
+if not client.api_key:
     raise EnvironmentError("❌ Missing OpenAI API key. Please set YOUR_OPEN_AI_KEY in environment.")
-print(f"🔑 OpenAI API key loaded: {openai.api_key[:5]}...")
+print(f"🔑 OpenAI API key loaded: {client.api_key[:5]}...")
 
 api_key = os.getenv("YOUR_API_KEY")
 password = os.getenv("YOUR_SHOPIFY_PASSWORD")
@@ -51,23 +51,23 @@ output_df = pd.DataFrame(columns=['URL Slug', 'Meta Title', 'Description', 'Blog
 output_lock = threading.Lock()
 
 # ==============================
-# 📡 OpenAI Retry Wrapper
+# 📱 OpenAI Retry Wrapper
 # ==============================
 
 @retry(wait=wait_random_exponential(min=4, max=10), stop=stop_after_attempt(10))
 def completion_with_backoff(**kwargs):
-    print("📡 Calling OpenAI ChatCompletion...")
+    print("📱 Calling OpenAI ChatCompletion...")
     try:
-        return openai.ChatCompletion.create(request_timeout=60, **kwargs)
-    except openai.error.InvalidRequestError as e:
-        print(f"❌ InvalidRequestError: {e}")
+        return client.chat.completions.create(**kwargs)
+    except openai.OpenAIError as e:
+        print(f"❌ OpenAI error: {e}")
         raise
     except Exception as e:
         print(f"❌ Unexpected error: {e}")
         raise
 
 # ==============================
-# 📝 Shopify Blog Post Creation
+# 📜 Shopify Blog Post Creation
 # ==============================
 
 @retry(wait=wait_random_exponential(min=4, max=10), stop=stop_after_attempt(10),
@@ -87,7 +87,7 @@ def create_shopify_post(payload):
         response.raise_for_status()
 
 # ==============================
-# 🧠 Blog Generator
+# 🧐 Blog Generator
 # ==============================
 
 def generate_blog_post(row):
@@ -96,48 +96,32 @@ def generate_blog_post(row):
         meta_title = row['Meta Title']
         description = row['Description of Page']
 
-        print(f"🧠 Generating outline for: {url_slug}")
+        print(f"🧐 Generating outline for: {url_slug}")
         outline_prompt = [
-            {
-                "role": "system",
-                "content": "You are an essay-writing assistant who creates detailed outlines for essays. Always write at least 15 points."
-            },
-            {
-                "role": "user",
-                "content": f"Create an outline for an essay about {meta_title} with at least 15 titles."
-            }
+            {"role": "system", "content": "You are an essay-writing assistant who creates detailed outlines for essays. Always write at least 15 points."},
+            {"role": "user", "content": f"Create an outline for an essay about {meta_title} with at least 15 titles."}
         ]
+
         print(f"🔁 Sending prompt to OpenAI for: {url_slug}")
         outline_response = completion_with_backoff(
-                    model="gpt-4",
-                    messages=outline_prompt,
-                    max_tokens=1024,
-                    temperature=0.2
-         )
+            model="gpt-4",
+            messages=outline_prompt,
+            max_tokens=1024,
+            temperature=0.2
+        )
 
-        if "choices" not in outline_response:
-                    print(f"❌ OpenAI response did not contain 'choices': {outline_response}")
-                    return
-
-        essay_outline = outline_response['choices'][0]['message']['content']
-
+        essay_outline = outline_response.choices[0].message.content
 
         conversation = [
-            {
-                "role": "system",
-                "content": (
-                    f"Internal links are VITAL for SEO. Use a max of 5 internal links, contextually, throughout the article. "
-                    f"NEVER USE PLACEHOLDERS. Write in HTML. Each heading should have 3 paragraphs and at least 1 list or table with borders. "
-                    f"Use these internal links: /suit-basics/, /how-to-wear-a-suit/, /how-to-measure/, /suit-fit/, /blazer-trousers/..."
-                )
-            },
-            {
-                "role": "user",
-                "content": (
-                    f"Use the outline: {essay_outline}. Write full article. Use fun tone. Each section should have 3 paragraphs and a table or list. "
-                    f"Include FAQ at the end, and wrap structured data with <script>...</script>."
-                )
-            }
+            {"role": "system", "content": (
+                f"Internal links are VITAL for SEO. Use a max of 5 internal links, contextually, throughout the article. "
+                f"NEVER USE PLACEHOLDERS. Write in HTML. Each heading should have 3 paragraphs and at least 1 list or table with borders. "
+                f"Use these internal links: /suit-basics/, /how-to-wear-a-suit/, /how-to-measure/, /suit-fit/, /blazer-trousers/..."
+            )},
+            {"role": "user", "content": (
+                f"Use the outline: {essay_outline}. Write full article. Use fun tone. Each section should have 3 paragraphs and a table or list. "
+                f"Include FAQ at the end, and wrap structured data with <script>...</script>."
+            )}
         ]
 
         print(f"✍️ Generating full blog content for: {url_slug}")
@@ -147,7 +131,8 @@ def generate_blog_post(row):
             max_tokens=4500,
             temperature=0.2
         )
-        blog_content = content_response['choices'][0]['message']['content']
+
+        blog_content = content_response.choices[0].message.content
         print(f"✅ Blog generated for: {url_slug}")
 
         result = {
@@ -161,7 +146,7 @@ def generate_blog_post(row):
             global output_df
             output_df = pd.concat([output_df, pd.DataFrame([result])], ignore_index=True)
             output_df.to_csv('output.csv', index=False)
-            print(f"💾 Saved blog for: {url_slug}")
+            print(f"📂 Saved blog for: {url_slug}")
 
         payload = {
             "article": {
@@ -179,11 +164,11 @@ def generate_blog_post(row):
         print(f"❌ Error for {url_slug}: {e}")
 
 # ==============================
-# 🚀 Main Entry
+# ✨ Main Entry
 # ==============================
 
 def main():
-    print("📥 Reading input.csv...")
+    print("📅 Reading input.csv...")
     df = pd.read_csv('input.csv')
 
     with ThreadPoolExecutor(max_workers=3) as executor:
